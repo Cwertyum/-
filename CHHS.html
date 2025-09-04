@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CHHS - Creative Hyper-Text Studio</title>
+    <style>
+        :root {
+            --primary-color: #4a6bff;
+            --secondary-color: #f0f4ff;
+            --border-color: #ddd;
+            --text-color: #333;
+            --bg-color: #fff;
+            --sidebar-width: 250px;
+            --header-height: 50px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            color: var(--text-color);
+            background-color: #f5f7fb;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .header {
+            height: var(--header-height);
+            background-color: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .main-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: var(--sidebar-width);
+            background-color: var(--bg-color);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .sidebar-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .sidebar-tab {
+            padding: 10px;
+            flex: 1;
+            text-align: center;
+            cursor: pointer;
+            background-color: #f9f9f9;
+        }
+
+        .sidebar-tab.active {
+            background-color: var(--secondary-color);
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+
+        .sidebar-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+        }
+
+        .elements-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .element-item {
+            padding: 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            text-align: center;
+            cursor: grab;
+            background-color: var(--secondary-color);
+            transition: all 0.2s;
+        }
+
+        .element-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .workspace {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .workspace-tabs {
+            display: flex;
+            background-color: #f0f2f5;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .workspace-tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #f0f2f5;
+        }
+
+        .workspace-tab.active {
+            background-color: var(--bg-color);
+            border-bottom: 2px solid var(--primary-color);
+            font-weight: bold;
+        }
+
+        .workspace-content {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+
+        .visual-editor {
+            flex: 1;
+            padding: 20px;
+            overflow: auto;
+            background-color: var(--bg-color);
+        }
+
+        .canvas {
+            background-color: white;
+            border: 1px dashed var(--border-color);
+            min-height: 400px;
+            position: relative;
+            margin: 0 auto;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .canvas-element {
+            position: absolute;
+            border: 1px solid transparent;
+            padding: 5px;
+            cursor: move;
+        }
+
+        .canvas-element.selected {
+            border: 1px dashed var(--primary-color);
+        }
+
+        .canvas-element:hover {
+            border: 1px dotted var(--border-color);
+        }
+
+        .code-editor-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background-color: #1e1e1e;
+        }
+
+        .editor-toolbar {
+            padding: 10px;
+            background-color: #2d2d30;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .code-editor {
+            flex: 1;
+            overflow: hidden;
+        }
+
+        #code-textarea {
+            width: 100%;
+            height: 100%;
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            border: none;
+            padding: 15px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            resize: none;
+        }
+
+        .preview-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background-color: var(--bg-color);
+        }
+
+        .preview-toolbar {
+            padding: 10px;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .preview-content {
+            flex: 1;
+            padding: 20px;
+            overflow: auto;
+            background-color: white;
+        }
+
+        .properties-panel {
+            width: var(--sidebar-width);
+            background-color: var(--bg-color);
+            border-left: 1px solid var(--border-color);
+            padding: 15px;
+            overflow-y: auto;
+        }
+
+        .property-group {
+            margin-bottom: 15px;
+        }
+
+        .property-group h3 {
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .property-item {
+            margin-bottom: 10px;
+        }
+
+        .property-item label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+
+        .property-item input,
+        .property-item select,
+        .property-item textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+        }
+
+        .btn {
+            padding: 8px 15px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .btn:hover {
+            background-color: #3a5ae0;
+        }
+
+        .btn-secondary {
+            background-color: #6c757d;
+        }
+
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+
+        .console {
+            height: 150px;
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            padding: 10px;
+            overflow-y: auto;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 13px;
+        }
+
+        .console-message {
+            margin-bottom: 5px;
+        }
+
+        .console-error {
+            color: #f48771;
+        }
+
+        .console-success {
+            color: #6a9955;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">CHHS Studio</div>
+        <div>
+            <button class="btn" id="run-btn">Запуск</button>
+            <button class="btn btn-secondary" id="export-btn">Экспорт</button>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <div class="sidebar">
+            <div class="sidebar-tabs">
+                <div class="sidebar-tab active" data-tab="elements">Элементы</div>
+                <div class="sidebar-tab" data-tab="commands">Команды</div>
+            </div>
+            <div class="sidebar-content">
+                <div id="elements-tab">
+                    <div class="elements-grid">
+                        <div class="element-item" data-type="text">Текст</div>
+                        <div class="element-item" data-type="button">Кнопка</div>
+                        <div class="element-item" data-type="image">Изображение</div>
+                        <div class="element-item" data-type="input">Поле ввода</div>
+                        <div class="element-item" data-type="container">Контейнер</div>
+                        <div class="element-item" data-type="video">Видео</div>
+                    </div>
+                </div>
+                <div id="commands-tab" style="display: none;">
+                    <h3>Команды CHHS Code</h3>
+                    <div class="property-group">
+                        <h4>UI элементы</h4>
+                        <div class="console-message">CREATE PAGE "имя"</div>
+                        <div class="console-message">ADD TEXT "текст" AT (x, y)</div>
+                        <div class="console-message">ADD BUTTON "текст" ACTION команда</div>
+                        <div class="console-message">ADD IMAGE "url" AT (x, y)</div>
+                        
+                        <h4>Анимации</h4>
+                        <div class="console-message">ANIMATE элемент WITH эффект</div>
+                        <div class="console-message">TRANSITION элемент TO (x, y)</div>
+                        
+                        <h4>Логика</h4>
+                        <div class="console-message">VAR имя = значение</div>
+                        <div class="console-message">SET имя = значение</div>
+                        <div class="console-message">IF условие THEN команда</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="workspace">
+            <div class="workspace-tabs">
+                <div class="workspace-tab active" data-tab="visual">Визуальный редактор</div>
+                <div class="workspace-tab" data-tab="code">CHHS Code</div>
+                <div class="workspace-tab" data-tab="preview">Превью</div>
+            </div>
+            <div class="workspace-content">
+                <div class="visual-editor" id="visual-tab">
+                    <div class="canvas" id="canvas">
+                        <div class="canvas-element" style="left: 50px; top: 50px; width: 200px; height: 40px;" data-type="text">
+                            Добро пожаловать в CHHS!
+                        </div>
+                        <div class="canvas-element" style="left: 50px; top: 100px; width: 120px; height: 40px;" data-type="button">
+                            Начать
+                        </div>
+                    </div>
+                </div>
+                <div class="code-editor-container" id="code-tab" style="display: none;">
+                    <div class="editor-toolbar">
+                        <span>CHHS Code Editor</span>
+                        <button class="btn" id="execute-btn">Выполнить</button>
+                    </div>
+                    <div class="code-editor">
+                        <textarea id="code-textarea">CREATE PAGE "Home"
+ADD TEXT "Добро пожаловать в CHHS!" AT (50, 50)
+ADD BUTTON "Начать" ACTION NAVIGATE "Editor"
+ANIMATE "button1" WITH FADE DURATION 500ms
+VAR counter = 0</textarea>
+                    </div>
+                    <div class="console" id="console">
+                        <div class="console-message console-success">Готов к выполнению кода. Нажмите "Выполнить".</div>
+                    </div>
+                </div>
+                <div class="preview-container" id="preview-tab" style="display: none;">
+                    <div class="preview-toolbar">
+                        <span>Live Preview</span>
+                        <button class="btn" id="refresh-preview">Обновить</button>
+                    </div>
+                    <div class="preview-content" id="preview-content">
+                        <!-- Preview will be rendered here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="properties-panel">
+            <h3>Свойства элемента</h3>
+            <div class="property-group">
+                <div class="property-item">
+                    <label>Тип элемента</label>
+                    <input type="text" id="prop-type" disabled>
+                </div>
+                <div class="property-item">
+                    <label>Позиция X</label>
+                    <input type="number" id="prop-x">
+                </div>
+                <div class="property-item">
+                    <label>Позиция Y</label>
+                    <input type="number" id="prop-y">
+                </div>
+                <div class="property-item">
+                    <label>Ширина</label>
+                    <input type="number" id="prop-width">
+                </div>
+                <div class="property-item">
+                    <label>Высота</label>
+                    <input type="number" id="prop-height">
+                </div>
+                <div class="property-item">
+                    <label>Текст</label>
+                    <textarea id="prop-text"></textarea>
+                </div>
+                <div class="property-item">
+                    <label>Цвет фона</label>
+                    <input type="color" id="prop-bgcolor">
+                </div>
+                <div class="property-item">
+                    <label>Цвет текста</label>
+                    <input type="color" id="prop-color">
+                </div>
+            </div>
+            <button class="btn" id="apply-props">Применить</button>
+            <button class="btn btn-secondary" id="delete-element">Удалить</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Tab switching logic
+            const sidebarTabs = document.querySelectorAll('.sidebar-tab');
+            const workspaceTabs = document.querySelectorAll('.workspace-tab');
+            const elementsTab = document.getElementById('elements-tab');
+            const commandsTab = document.getElementById('commands-tab');
+            const visualTab = document.getElementById('visual-tab');
+            const codeTab = document.getElementById('code-tab');
+            const previewTab = document.getElementById('preview-tab');
+            
+            // Sidebar tabs
+            sidebarTabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    sidebarTabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    
+                    if (tab.dataset.tab === 'elements') {
+                        elementsTab.style.display = 'block';
+                        commandsTab.style.display = 'none';
+                    } else {
+                        elementsTab.style.display = 'none';
+                        commandsTab.style.display = 'block';
+                    }
+                });
+            });
+            
+            // Workspace tabs
+            workspaceTabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    workspaceTabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    
+                    if (tab.dataset.tab === 'visual') {
+                        visualTab.style.display = 'flex';
+                        codeTab.style.display = 'none';
+                        previewTab.style.display = 'none';
+                    } else if (tab.dataset.tab === 'code') {
+                        visualTab.style.display = 'none';
+                        codeTab.style.display = 'flex';
+                        previewTab.style.display = 'none';
+                    } else {
+                        visualTab.style.display = 'none';
+                        codeTab.style.display = 'none';
+                        previewTab.style.display = 'flex';
+                        updatePreview();
+                    }
+                });
+            });
+            
+            // Canvas elements interaction
+            const canvas = document.getElementById('canvas');
+            let selectedElement = null;
+            
+            canvas.addEventListener('click', (e) => {
+                const element = e.target.closest('.canvas-element');
+                if (element) {
+                    // Deselect previous element
+                    if (selectedElement) {
+                        selectedElement.classList.remove('selected');
+                    }
+                    
+                    // Select new element
+                    selectedElement = element;
+                    element.classList.add('selected');
+                    
+                    // Update properties panel
+                    updatePropertiesPanel(element);
+                } else {
+                    // Clicked on canvas, deselect all
+                    if (selectedElement) {
+                        selectedElement.classList.remove('selected');
+                        selectedElement = null;
+                    }
+                    clearPropertiesPanel();
+                }
+            });
+            
+            // Add new elements from sidebar
+            const elementItems = document.querySelectorAll('.element-item');
+            elementItems.forEach(item => {
+                item.addEventListener('click', () => {
+                    const type = item.dataset.type;
+                    addElementToCanvas(type);
+                });
+            });
+            
+            // Properties panel logic
+            const applyPropsBtn = document.getElementById('apply-props');
+            const deleteElementBtn = document.getElementById('delete-element');
+            
+            applyPropsBtn.addEventListener('click', () => {
+                if (selectedElement) {
+                    applyPropertiesToElement(selectedElement);
+                }
+            });
+            
+            deleteElementBtn.addEventListener('click', () => {
+                if (selectedElement) {
+                    selectedElement.remove();
+                    selectedElement = null;
+                    clearPropertiesPanel();
+                }
+            });
+            
+            // CHHS Code execution
+            const executeBtn = document.getElementById('execute-btn');
+            const consoleElement = document.getElementById('console');
+            
+            executeBtn.addEventListener('click', () => {
+                const code = document.getElementById('code-textarea').value;
+                executeCHHSCode(code);
+            });
+            
+            // Preview refresh
+            const refreshPreviewBtn = document.getElementById('refresh-preview');
+            refreshPreviewBtn.addEventListener('click', updatePreview);
+            
+            // Run and Export buttons
+            document.getElementById('run-btn').addEventListener('click', () => {
+                workspaceTabs[2].click(); // Switch to preview tab
+            });
+            
+            document.getElementById('export-btn').addEventListener('click', exportProject);
+            
+            // Initialize with sample elements
+            initCanvasElements();
+            
+            // Function definitions
+            function addElementToCanvas(type) {
+                const element = document.createElement('div');
+                element.className = 'canvas-element';
+                element.dataset.type = type;
+                
+                // Set default styles based on type
+                switch(type) {
+                    case 'text':
+                        element.style.left = '50px';
+                        element.style.top = '50px';
+                        element.style.width = '200px';
+                        element.style.height = '40px';
+                        element.textContent = 'Новый текст';
+                        element.style.backgroundColor = 'transparent';
+                        break;
+                    case 'button':
+                        element.style.left = '50px';
+                        element.style.top = '100px';
+                        element.style.width = '120px';
+                        element.style.height = '40px';
+                        element.textContent = 'Кнопка';
+                        element.style.backgroundColor = '#4a6bff';
+                        element.style.color = 'white';
+                        element.style.textAlign = 'center';
+                        element.style.lineHeight = '40px';
+                        element.style.borderRadius = '4px';
+                        break;
+                    case 'image':
+                        element.style.left = '50px';
+                        element.style.top = '150px';
+                        element.style.width = '200px';
+                        element.style.height = '150px';
+                        element.textContent = '[Изображение]';
+                        element.style.backgroundColor = '#f0f4ff';
+                        element.style.textAlign = 'center';
+                        element.style.lineHeight = '150px';
+                        break;
+                    case 'input':
+                        element.style.left = '50px';
+                        element.style.top = '200px';
+                        element.style.width = '200px';
+                        element.style.height = '40px';
+                        element.textContent = '';
+                        element.style.backgroundColor = 'white';
+                        element.style.border = '1px solid #ddd';
+                        element.style.padding = '5px';
+                        break;
+                    case 'container':
+                        element.style.left = '50px';
+                        element.style.top = '250px';
+                        element.style.width = '300px';
+                        element.style.height = '200px';
+                        element.textContent = '';
+                        element.style.backgroundColor = '#f9f9f9';
+                        element.style.border = '1px solid #ddd';
+                        break;
+                }
+                
+                canvas.appendChild(element);
+                
+                // Select the new element
+                if (selectedElement) {
+                    selectedElement.classList.remove('selected');
+                }
+                selectedElement = element;
+                element.classList.add('selected');
+                updatePropertiesPanel(element);
+            }
+            
+            function updatePropertiesPanel(element) {
+                document.getElementById('prop-type').value = element.dataset.type;
+                document.getElementById('prop-x').value = parseInt(element.style.left || 0);
+                document.getElementById('prop-y').value = parseInt(element.style.top || 0);
+                document.getElementById('prop-width').value = parseInt(element.style.width || 0);
+                document.getElementById('prop-height').value = parseInt(element.style.height || 0);
+                document.getElementById('prop-text').value = element.textContent;
+                
+                // Try to get background color
+                const bgColor = element.style.backgroundColor || 'transparent';
+                document.getElementById('prop-bgcolor').value = rgbToHex(bgColor);
+                
+                // Try to get text color
+                const textColor = element.style.color || '#000000';
+                document.getElementById('prop-color').value = rgbToHex(textColor);
+            }
+            
+            function clearPropertiesPanel() {
+                document.getElementById('prop-type').value = '';
+                document.getElementById('prop-x').value = '';
+                document.getElementById('prop-y').value = '';
+                document.getElementById('prop-width').value = '';
+                document.getElementById('prop-height').value = '';
+                document.getElementById('prop-text').value = '';
+                document.getElementById('prop-bgcolor').value = '#ffffff';
+                document.getElementById('prop-color').value = '#000000';
+            }
+            
+            function applyPropertiesToElement(element) {
+                element.style.left = document.getElementById('prop-x').value + 'px';
+                element.style.top = document.getElementById('prop-y').value + 'px';
+                element.style.width = document.getElementById('prop-width').value + 'px';
+                element.style.height = document.getElementById('prop-height').value + 'px';
+                element.textContent = document.getElementById('prop-text').value;
+                element.style.backgroundColor = document.getElementById('prop-bgcolor').value;
+                element.style.color = document.getElementById('prop-color').value;
+            }
+            
+            function rgbToHex(rgb) {
+                if (rgb === 'transparent') return '#ffffff';
+                
+                // If already in hex format, return as is
+                if (rgb.startsWith('#')) return rgb;
+                
+                // Convert rgb(r, g, b) to #rrggbb
+                const match = rgb.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
+                if (match) {
+                    return '#' + 
+                        parseInt(match[1]).toString(16).padStart(2, '0') +
+                        parseInt(match[2]).toString(16).padStart(2, '0') +
+                        parseInt(match[3]).toString(16).padStart(2, '0');
+                }
+                
+                return '#000000';
+            }
+            
+            function executeCHHSCode(code) {
+                // Clear console
+                consoleElement.innerHTML = '';
+                
+                // Add initial message
+                addConsoleMessage('Выполнение CHHS Code...', 'success');
+                
+                // Split code into lines
+                const lines = code.split('\n');
+                
+                // Simple parser and executor
+                lines.forEach(line => {
+                    line = line.trim();
+                    if (!line || line.startsWith('#')) return;
+                    
+                    try {
+                        if (line.startsWith('CREATE PAGE')) {
+                            const pageName = line.match(/"([^"]+)"/)[1];
+                            addConsoleMessage(`Создана страница: ${pageName}`, 'success');
+                        } 
+                        else if (line.startsWith('ADD TEXT')) {
+                            const matches = line.match(/"([^"]+)" AT \((\d+),\s*(\d+)\)/);
+                            if (matches) {
+                                const text = matches[1];
+                                const x = matches[2];
+                                const y = matches[3];
+                                
+                                // Create text element on canvas
+                                const element = document.createElement('div');
+                                element.className = 'canvas-element';
+                                element.dataset.type = 'text';
+                                element.style.left = x + 'px';
+                                element.style.top = y + 'px';
+                                element.style.width = '200px';
+                                element.style.height = '40px';
+                                element.textContent = text;
+                                
+                                canvas.appendChild(element);
+                                addConsoleMessage(`Добавлен текст: ${text}`, 'success');
+                            }
+                        }
+                        else if (line.startsWith('ADD BUTTON')) {
+                            const matches = line.match(/"([^"]+)" ACTION (\w+)/);
+                            if (matches) {
+                                const text = matches[1];
+                                const action = matches[2];
+                                
+                                // Create button element on canvas
+                                const element = document.createElement('div');
+                                element.className = 'canvas-element';
+                                element.dataset.type = 'button';
+                                element.style.left = '50px';
+                                element.style.top = '100px';
+                                element.style.width = '120px';
+                                element.style.height = '40px';
+                                element.textContent = text;
+                                element.style.backgroundColor = '#4a6bff';
+                                element.style.color = 'white';
+                                element.style.textAlign = 'center';
+                                element.style.lineHeight = '40px';
+                                element.style.borderRadius = '4px';
+                                
+                                canvas.appendChild(element);
+                                addConsoleMessage(`Добавлена кнопка: ${text} с действием: ${action}`, 'success');
+                            }
+                        }
+                        else if (line.startsWith('VAR ')) {
+                            const matches = line.match(/VAR (\w+) = (.+)/);
+                            if (matches) {
+                                const varName = matches[1];
+                                const value = matches[2];
+                                addConsoleMessage(`Объявлена переменная: ${varName} = ${value}`, 'success');
+                            }
+                        }
+                        else if (line.startsWith('ANIMATE')) {
+                            const matches = line.match(/ANIMATE "(\w+)" WITH (\w+)/);
+                            if (matches) {
+                                const elementName = matches[1];
+                                const effect = matches[2];
+                                addConsoleMessage(`Анимация: ${elementName} с эффектом: ${effect}`, 'success');
+                            }
+                        }
+                        else {
+                            addConsoleMessage(`Выполнена команда: ${line}`, 'success');
+                        }
+                    } catch (error) {
+                        addConsoleMessage(`Ошибка в команде: ${line} - ${error.message}`, 'error');
+                    }
+                });
+                
+                addConsoleMessage('Выполнение завершено.', 'success');
+            }
+            
+            function addConsoleMessage(message, type = 'normal') {
+                const msgElement = document.createElement('div');
+                msgElement.className = `console-message ${type === 'error' ? 'console-error' : ''} ${type === 'success' ? 'console-success' : ''}`;
+                msgElement.textContent = message;
+                consoleElement.appendChild(msgElement);
+                consoleElement.scrollTop = consoleElement.scrollHeight;
+            }
+            
+            function updatePreview() {
+                const previewContent = document.getElementById('preview-content');
+                previewContent.innerHTML = '';
+                
+                // Clone canvas elements to preview
+                const elements = canvas.querySelectorAll('.canvas-element');
+                elements.forEach(element => {
+                    const clone = element.cloneNode(true);
+                    clone.classList.remove('canvas-element');
+                    clone.classList.remove('selected');
+                    clone.style.position = 'relative';
+                    clone.style.left = '0';
+                    clone.style.top = '0';
+                    clone.style.margin = '10px';
+                    
+                    // Make buttons interactive in preview
+                    if (clone.dataset.type === 'button') {
+                        clone.style.cursor = 'pointer';
+                        clone.addEventListener('click', () => {
+                            alert('Кнопка нажата!');
+                        });
+                    }
+                    
+                    previewContent.appendChild(clone);
+                });
+            }
+            
+            function exportProject() {
+                // In a real implementation, this would generate HTML/CSS/JS code
+                alert('Экспорт проекта в выбранный формат (HTML/React/Vue)');
+                
+                // For demonstration, show the generated HTML
+                const htmlContent = generateHTML();
+                const blob = new Blob([htmlContent], { type: 'text/html' });
+                const url = URL.createObjectURL(blob);
+                
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'chhs-project.html';
+                a.click();
+            }
+            
+            function generateHTML() {
+                // Generate basic HTML structure with the elements
+                return `<!DOCTYPE html>
+<html>
+<head>
+    <title>CHHS Project</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .element { position: relative; margin: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Ваш CHHS проект</h1>
+    ${getElementsHTML()}
+</body>
+</html>`;
+            }
+            
+            function getElementsHTML() {
+                let html = '';
+                const elements = canvas.querySelectorAll('.canvas-element');
+                
+                elements.forEach(element => {
+                    const type = element.dataset.type;
+                    const text = element.textContent;
+                    const style = `left: ${element.style.left}; top: ${element.style.top}; width: ${element.style.width}; height: ${element.style.height}; background-color: ${element.style.backgroundColor}; color: ${element.style.color};`;
+                    
+                    if (type === 'text') {
+                        html += `<div class="element" style="${style}">${text}</div>`;
+                    } else if (type === 'button') {
+                        html += `<button class="element" style="${style}" onclick="alert('Кнопка нажата!')">${text}</button>`;
+                    } else if (type === 'image') {
+                        html += `<div class="element" style="${style}">[Изображение: ${text}]</div>`;
+                    } else {
+                        html += `<div class="element" style="${style}">${text}</div>`;
+                    }
+                });
+                
+                return html;
+            }
+            
+            function initCanvasElements() {
+                // Make existing elements draggable
+                const elements = canvas.querySelectorAll('.canvas-element');
+                elements.forEach(element => {
+                    makeDraggable(element);
+                });
+            }
+            
+            function makeDraggable(element) {
+                let isDragging = false;
+                let startX, startY, initialLeft, initialTop;
+                
+                element.addEventListener('mousedown', (e) => {
+                    isDragging = true;
+                    startX = e.clientX;
+                    startY = e.clientY;
+                    initialLeft = parseInt(element.style.left || 0);
+                    initialTop = parseInt(element.style.top || 0);
+                    
+                    // Select this element
+                    if (selectedElement) {
+                        selectedElement.classList.remove('selected');
+                    }
+                    selectedElement = element;
+                    element.classList.add('selected');
+                    updatePropertiesPanel(element);
+                    
+                    e.preventDefault();
+                });
+                
+                document.addEventListener('mousemove', (e) => {
+                    if (!isDragging) return;
+                    
+                    const dx = e.clientX - startX;
+                    const dy = e.clientY - startY;
+                    
+                    element.style.left = (initialLeft + dx) + 'px';
+                    element.style.top = (initialTop + dy) + 'px';
+                    
+                    // Update properties panel if this element is selected
+                    if (selectedElement === element) {
+                        updatePropertiesPanel(element);
+                    }
+                });
+                
+                document.addEventListener('mouseup', () => {
+                    isDragging = false;
+                });
+            }
+        });
+    </script>
+</body>
+</html>
